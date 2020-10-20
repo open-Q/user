@@ -1,1 +1,4 @@
 /.contract
+/log
+
+.env*
