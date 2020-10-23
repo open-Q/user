@@ -21,6 +21,13 @@ type MongoStorage struct {
 	userCollection *commonStorage.MongoCollection
 }
 
+// MongoUser represents user mongo storage model.
+type MongoUser struct {
+	ID     *primitive.ObjectID `bson:"_id,omitempty"`
+	Email  string              `bson:"email"`
+	Status string              `bson:"status"`
+}
+
 // NewMongoStorage returns new MongoStorage instance.
 func NewMongoStorage(ctx context.Context, connString, dbName string) (*MongoStorage, error) {
 	db, err := commonStorage.NewMongo(ctx, connString, dbName)
@@ -35,7 +42,7 @@ func NewMongoStorage(ctx context.Context, connString, dbName string) (*MongoStor
 		Options: options.Index().SetUnique(true),
 	})
 	if err != nil {
-		return nil, errors.Wrapf(err, "could not create %s collection", userColl)
+		return nil, errors.Wrapf(err, "could not create %s collection", userCollection)
 	}
 
 	return &MongoStorage{
@@ -46,12 +53,12 @@ func NewMongoStorage(ctx context.Context, connString, dbName string) (*MongoStor
 
 // Disconnect breaks storage connection.
 func (s *MongoStorage) Disconnect(ctx context.Context) error {
-	return s.Disconnect(ctx)
+	return s.db.Disconnect(ctx)
 }
 
 // Add adds a new user.
 func (s *MongoStorage) Add(ctx context.Context, user User) (*User, error) {
-	mUser, err := user.ToMongoUser()
+	mUser, err := NewMongoUser(user)
 	if err != nil {
 		return nil, err
 	}
@@ -65,4 +72,34 @@ func (s *MongoStorage) Add(ctx context.Context, user User) (*User, error) {
 	mUser.ID = &insertedID
 
 	return mUser.ToUser(), nil
+}
+
+// ToUser converts MongoUser model to User model.
+func (m MongoUser) ToUser() *User {
+	user := User{
+		Email:  m.Email,
+		Status: m.Status,
+	}
+	if m.ID != nil {
+		id := m.ID.Hex()
+		user.ID = &id
+	}
+	return &user
+}
+
+// NewMongoUser converts User model to MongoUser model.
+func NewMongoUser(u User) (*MongoUser, error) {
+	user := MongoUser{
+		Email:  u.Email,
+		Status: u.Status,
+	}
+	if u.ID != nil {
+		id, err := primitive.ObjectIDFromHex(*u.ID)
+		if err != nil {
+			return nil, err
+		}
+		user.ID = &id
+	}
+
+	return &user, nil
 }

@@ -6,7 +6,7 @@ run:
 	go run -ldflags "-X main.version=$(VERSION)" main.go
 
 test:
-	go test -p 1 -coverpkg=./controller... ./controller...
+	go test -p 1 -coverpkg=./controller...,./storage... ./controller... ./storage...
 
 lint:
 	golangci-lint cache clean
@@ -24,6 +24,10 @@ start_images:
 stop_images:
 	echo "Stopping docker"
 	docker rm -f mongodb || true
+
+gen:
+	rm -rf ./mocks/*.go
+	mockery --dir ./dep/ --all --case underscore --disable-version-string
 
 ######
 
