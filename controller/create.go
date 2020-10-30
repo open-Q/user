@@ -8,15 +8,14 @@ import (
 )
 
 // Create creates new user.
-func (s Service) Create(ctx context.Context, req *proto.UserRequest, resp *proto.UserResponse) error {
+func (s Service) Create(ctx context.Context, req *proto.CreateRequest, resp *proto.UserResponse) error {
 	user := storage.User{
-		Email:  req.GetEmail(),
 		Status: proto.AccountStatus_ACCOUNT_STATUS_ACTIVE.String(),
+		Meta:   newUserMeta(req.Meta),
 	}
 	createdUser, err := s.storage.Add(ctx, user)
 	if err != nil {
 		return err
 	}
-	newUserResponse(resp, createdUser)
-	return nil
+	return newUserResponse(resp, createdUser)
 }

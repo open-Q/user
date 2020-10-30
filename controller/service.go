@@ -5,7 +5,6 @@ import (
 	commonLog "github.com/open-Q/common/golang/log"
 	proto "github.com/open-Q/common/golang/proto/user"
 	"github.com/open-Q/user/dep"
-	"github.com/open-Q/user/storage"
 )
 
 // Service represents service controller instance.
@@ -31,14 +30,4 @@ func New(cfg Config) (*Service, error) {
 		return nil, err
 	}
 	return srv, nil
-}
-
-func newUserResponse(resp *proto.UserResponse, user *storage.User) {
-	resp.Email = user.Email
-	if user.ID != nil {
-		resp.Id = &proto.UserID{
-			Id: *user.ID,
-		}
-	}
-	resp.Status = proto.AccountStatus(proto.AccountStatus_value[user.Status])
 }

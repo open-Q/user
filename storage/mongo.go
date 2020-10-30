@@ -23,9 +23,9 @@ type MongoStorage struct {
 
 // MongoUser represents user mongo storage model.
 type MongoUser struct {
-	ID     *primitive.ObjectID `bson:"_id,omitempty"`
-	Email  string              `bson:"email"`
-	Status string              `bson:"status"`
+	ID     primitive.ObjectID `bson:"_id,omitempty"`
+	Status string             `bson:"status"`
+	Meta   map[string][]byte  `bson:"meta,omitempty"`
 }
 
 // NewMongoStorage returns new MongoStorage instance.
@@ -37,7 +37,7 @@ func NewMongoStorage(ctx context.Context, connString, dbName string) (*MongoStor
 
 	userColl, err := db.Collection(ctx, userCollection, mongo.IndexModel{
 		Keys: bson.M{
-			"email": 1,
+			"meta.0": 1,
 		},
 		Options: options.Index().SetUnique(true),
 	})
@@ -68,8 +68,7 @@ func (s *MongoStorage) Add(ctx context.Context, user User) (*User, error) {
 		return nil, err
 	}
 
-	insertedID := res.InsertedID.(primitive.ObjectID)
-	mUser.ID = &insertedID
+	mUser.ID = res.InsertedID.(primitive.ObjectID)
 
 	return mUser.ToUser(), nil
 }
@@ -77,12 +76,11 @@ func (s *MongoStorage) Add(ctx context.Context, user User) (*User, error) {
 // ToUser converts MongoUser model to User model.
 func (m MongoUser) ToUser() *User {
 	user := User{
-		Email:  m.Email,
 		Status: m.Status,
+		Meta:   m.Meta,
 	}
-	if m.ID != nil {
-		id := m.ID.Hex()
-		user.ID = &id
+	if !m.ID.IsZero() {
+		user.ID = m.ID.Hex()
 	}
 	return &user
 }
@@ -90,15 +88,15 @@ func (m MongoUser) ToUser() *User {
 // NewMongoUser converts User model to MongoUser model.
 func NewMongoUser(u User) (*MongoUser, error) {
 	user := MongoUser{
-		Email:  u.Email,
 		Status: u.Status,
+		Meta:   u.Meta,
 	}
-	if u.ID != nil {
-		id, err := primitive.ObjectIDFromHex(*u.ID)
+	if u.ID != "" {
+		id, err := primitive.ObjectIDFromHex(u.ID)
 		if err != nil {
 			return nil, err
 		}
-		user.ID = &id
+		user.ID = id
 	}
 
 	return &user, nil

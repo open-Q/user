@@ -2,7 +2,7 @@ package storage
 
 // User represents user storage model.
 type User struct {
-	ID     *string
-	Email  string
+	ID     string
 	Status string
+	Meta   map[string][]byte
 }
