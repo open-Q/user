@@ -10,7 +10,7 @@ import (
 // Create creates new user.
 func (s Service) Create(ctx context.Context, req *proto.CreateRequest, resp *proto.UserResponse) error {
 	user := storage.User{
-		Status: proto.AccountStatus_ACCOUNT_STATUS_ACTIVE.String(),
+		Status: proto.AccountStatus_name[int32(proto.AccountStatus_ACCOUNT_STATUS_ACTIVE)],
 		Meta:   newUserMeta(req.Meta),
 	}
 	createdUser, err := s.storage.Add(ctx, user)

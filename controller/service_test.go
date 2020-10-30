@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"errors"
 	"testing"
 
 	"github.com/micro/go-micro/v2"
@@ -8,6 +9,8 @@ import (
 	"github.com/open-Q/user/mocks"
 	"github.com/stretchr/testify/require"
 )
+
+var errMock = errors.New("error")
 
 func Test_New(t *testing.T) {
 	s, err := New(Config{
