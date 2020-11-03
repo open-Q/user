@@ -9,8 +9,8 @@ import (
 	"github.com/micro/go-micro/v2"
 	"github.com/open-Q/common/golang/proto/user"
 	proto "github.com/open-Q/common/golang/proto/user"
-	"github.com/open-Q/user/mocks"
 	"github.com/open-Q/user/storage"
+	storageMocks "github.com/open-Q/user/storage/mocks"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 )
@@ -22,7 +22,7 @@ func TestService_Create(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, service)
 	t.Run("save to storage error", func(t *testing.T) {
-		st := new(mocks.Storage)
+		st := new(storageMocks.User)
 		defer st.AssertExpectations(t)
 		service.storage = st
 		st.On("Add", mock.Anything, mock.Anything).Return(nil, errMock)
@@ -31,7 +31,7 @@ func TestService_Create(t *testing.T) {
 		require.EqualError(t, err, errMock.Error())
 	})
 	t.Run("all ok", func(t *testing.T) {
-		st := new(mocks.Storage)
+		st := new(storageMocks.Storage)
 		defer st.AssertExpectations(t)
 		service.storage = st
 		req := &user.CreateRequest{

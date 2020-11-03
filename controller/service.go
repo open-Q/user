@@ -1,33 +1,26 @@
 package controller
 
 import (
-	"github.com/micro/go-micro/v2"
 	commonLog "github.com/open-Q/common/golang/log"
-	proto "github.com/open-Q/common/golang/proto/user"
-	"github.com/open-Q/user/dep"
+	"github.com/open-Q/user/storage"
 )
 
 // Service represents service controller instance.
 type Service struct {
-	storage dep.Storage
-	logger  *commonLog.Logger
+	userStorage storage.User
+	logger      *commonLog.Logger
 }
 
 // Config represents service configuration.
 type Config struct {
-	Storage dep.Storage
-	Logger  *commonLog.Logger
-	Micro   micro.Service
+	UserStorage storage.User
+	Logger      *commonLog.Logger
 }
 
 // New creates new service instance.
-func New(cfg Config) (*Service, error) {
-	srv := &Service{
-		logger:  cfg.Logger,
-		storage: cfg.Storage,
+func New(cfg Config) Service {
+	return Service{
+		logger:      cfg.Logger,
+		userStorage: cfg.UserStorage,
 	}
-	if err := proto.RegisterUserHandler(cfg.Micro.Server(), srv); err != nil {
-		return nil, err
-	}
-	return srv, nil
 }

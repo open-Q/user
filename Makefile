@@ -25,9 +25,9 @@ stop_images:
 	echo "Stopping docker"
 	docker rm -f mongodb || true
 
-gen:
-	rm -rf ./mocks/*.go
-	mockery --dir ./dep/ --all --case underscore --disable-version-string
+gen-mocks:
+	rm -rf ./storage/mocks/*.go
+	mockery --dir ./storage/ --all --output ./storage/mocks/ --case underscore --disable-version-string
 
 ######
 

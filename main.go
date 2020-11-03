@@ -8,6 +8,7 @@ import (
 
 	common "github.com/open-Q/common/golang"
 	commonLog "github.com/open-Q/common/golang/log"
+	proto "github.com/open-Q/common/golang/proto/user"
 	commonService "github.com/open-Q/common/golang/service"
 	"github.com/open-Q/user/controller"
 	"github.com/open-Q/user/storage"
@@ -37,7 +38,7 @@ func main() {
 	})
 
 	// create service instance.
-	service, flagsMap, err := commonService.New("./.contract/contract.json")
+	microService, flagsMap, err := commonService.New("./.contract/contract.json")
 	if err != nil {
 		logger.Fatalf("could not create service: %v", err)
 	}
@@ -45,29 +46,28 @@ func main() {
 	// initialize storage.
 	mongoConnString := flagsMap[envMongoConn]
 	mongoDBName := flagsMap[envMongoDB]
-	st, err := storage.NewMongoStorage(ctx, mongoConnString.Value().(string), mongoDBName.Value().(string))
+	userStorage, err := storage.NewMongoStorage(ctx, mongoConnString.Value().(string), mongoDBName.Value().(string))
 	if err != nil {
 		logger.Fatalf("could not create connection to storage: %v", err)
 	}
 	defer func() {
-		if err := st.Disconnect(ctx); err != nil {
+		if err := userStorage.Disconnect(ctx); err != nil {
 			logger.Errorf("could not close storage connection: %v", err)
 		}
 	}()
 
 	// register service controller.
-	_, err = controller.New(controller.Config{
-		Logger:  logger,
-		Micro:   service,
-		Storage: st,
+	service := controller.New(controller.Config{
+		Logger:      logger,
+		UserStorage: userStorage,
 	})
-	if err != nil {
+	if err := proto.RegisterUserHandler(microService.Server(), service); err != nil {
 		logger.Fatalf("could not register service controller: %v", err)
 	}
 
 	// run service.
 	logger.Infof("service started, version: %s", version)
-	if err := service.Run(); err != nil {
+	if err := microService.Run(); err != nil {
 		logger.Fatalf("could not run service: %v", err)
 	}
 	logger.Info("service stopped")
